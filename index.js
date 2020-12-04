@@ -22,7 +22,7 @@ async function eachLimit (items, limit, func, options = {}) {
         // 结束
         return;
       }
-      if (!status) finishIndex++;
+      // if (!status) finishIndex++;
 
       if (startIndex < maxIndex) {
         startIndex++;
@@ -49,6 +49,7 @@ async function eachLimit (items, limit, func, options = {}) {
       } catch (err) {
         error = err;
       }
+      finishIndex ++;
       // push result
       results.push(result);
 
