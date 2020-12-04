@@ -2,7 +2,7 @@
  * @Author: maple
  * @Date: 2020-12-04 13:33:31
  * @LastEditors: maple
- * @LastEditTime: 2020-12-04 15:54:22
+ * @LastEditTime: 2020-12-04 17:22:31
  */
 
 async function eachLimit (items, limit, func, options = {}) {
@@ -24,9 +24,9 @@ async function eachLimit (items, limit, func, options = {}) {
       }
       if (!status) finishIndex++;
 
-      if (startIndex <= maxIndex) {
-        const item = items[startIndex - 1];
+      if (startIndex < maxIndex) {
         startIndex++;
+        const item = items[startIndex - 1];
         beginNewFunc(item);
       }
     };
