@@ -91,5 +91,6 @@ const each = async function (items = [], func, options = {}) {
 eachLimit.retry = retry;
 eachLimit.all = Promise.all;
 eachLimit.each = each;
+eachLimit.eachLimit = eachLimit;
 
 module.exports = eachLimit;
