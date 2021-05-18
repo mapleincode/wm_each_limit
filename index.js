@@ -2,7 +2,7 @@
  * @Author: maple
  * @Date: 2020-12-04 13:33:31
  * @LastEditors: maple
- * @LastEditTime: 2021-05-14 17:07:53
+ * @LastEditTime: 2021-05-18 15:34:42
  */
 
 /**
@@ -89,7 +89,9 @@ const each = async function (items = [], func, options = {}) {
 };
 
 eachLimit.retry = retry;
-eachLimit.all = Promise.all;
+eachLimit.all = function (funcs) {
+  return Promise.all(funcs.map(func => func()));
+};
 eachLimit.each = each;
 eachLimit.eachLimit = eachLimit;
 
