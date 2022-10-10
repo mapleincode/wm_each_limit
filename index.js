@@ -2,7 +2,7 @@
  * @Author: maple
  * @Date: 2020-12-04 13:33:31
  * @LastEditors: maple
- * @LastEditTime: 2021-05-18 15:34:42
+ * @LastEditTime: 2022-10-10 11:00:07
  */
 
 /**
@@ -16,39 +16,91 @@
 const eachLimit = function (items, limit, func, options = {}) {
   return new Promise((resolve, reject) => {
     const noerror = options.noerror || false;
-    const pendingList = [];
+    const out = options.out || (() => {});
+
     const todoList = [...items];
     const resultList = [];
-    let itemI = 0;
-    let finishCount = 0 - limit; // reduce init limit count
 
-    const checkPendig = function (done) {
-      finishCount++;
-      const index = pendingList.indexOf(done);
-      const item = todoList.shift();
+    const maxTodoCount = todoList.length;
+    let todoFinishCount = 0;
 
-      const itemIndex = itemI++;
-      if (!item && !todoList.length) {
-        if (finishCount >= items.length) {
-          resolve(resultList);
+    const pendingIndexList = [];
+    let doingIndexList = [];
+
+    const checkPending = function () {
+      // 判断数组为空
+      if ((pendingIndexList.length === 0 && doingIndexList.length === 0)) {
+        if (todoFinishCount !== maxTodoCount) {
+          reject(new Error(`todoFinishCount 与 maxTodoCount 不符合 ${todoFinishCount} - ${maxTodoCount}`));
         }
+        resolve(resultList);
+      }
+
+      // 判断完成数
+      if (todoFinishCount >= maxTodoCount) {
+        reject(new Error(`todoFinishCount 与 maxTodoCount 不符合 ${todoFinishCount} - ${maxTodoCount}`));
+      }
+
+      // 获取实际数据的 index
+      const index = pendingIndexList.shift();
+      if (index === undefined) {
+        // todoList 为空
+        out({ msg: `doing: ${doingIndexList.join(',')}`, doingIndexList });
         return;
       }
-      const promise = pendingList[index] = func(item);
+
+      // 获取实际数据
+      const item = todoList[index];
+
+      // 封装 promise
+      let promise = func(item);
+
+      if (!promise) {
+        throw new Error('promise can\' be empty');
+      }
+
+      if (!promise.then) {
+        // 可能是返回性的 promise
+        promise = promise();
+      }
+
+      doingIndexList.push(index);
+
+      if (doingIndexList.length > limit) {
+        reject(new Error(`doing index list 大于 limit: ${doingIndexList.length}`));
+      }
+
+      out({ msg: `pending: ${pendingIndexList.length}, doing: ${doingIndexList.join(',')}`, doingIndexList });
+
       promise
         .then((result) => {
-          resultList[itemIndex] = result;
-          checkPendig(promise);
+          todoFinishCount++;
+          out({ msg: `${index} has done.`, doingIndexList, index });
+          doingIndexList = doingIndexList.filter(i => i !== index);
+          resultList[index] = result;
+          checkPending();
         })
         .catch(err => {
+          todoFinishCount++;
+          out({ msg: `${index} has error.`, doingIndexList, index });
+          doingIndexList = doingIndexList.filter(i => i !== index);
           if (!noerror) {
             reject(err);
+          } else {
+            resultList[index] = { err: err };
+            checkPending();
           }
         });
     };
+
+    // 填充 pendingIndex 数组
+    for (let i = 0; i < maxTodoCount; i++) {
+      pendingIndexList.push(i);
+    }
+
+    // 执行操作
     for (let i = 0; i < limit; i++) {
-      pendingList[i] = i;
-      checkPendig(i);
+      checkPending();
     }
   });
 };

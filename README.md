@@ -32,7 +32,7 @@ const done = async function(item) {
 async function main() {
     const items = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   
-    const results = await eachLimit(items, 2, done);
+    const results = await eachLimit(items, 2, done, { noerror: true, item => console.log(item.msg) });
 
     console.log(results);
     // should get [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
